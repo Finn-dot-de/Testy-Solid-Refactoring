@@ -1,0 +1,123 @@
+@model Dictionary<string, object>
+
+@{
+    ViewData["Title"] = "Statistiken";
+}
+
+<h2><i class="bi bi-graph-up"></i> Training-Statistiken</h2>
+
+<div class="row mt-4">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calendar-check"></i> Anzahl Trainings</h5>
+                <h2 class="card-text">@Model["GesamtAnzahl"]</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-clock"></i> Gesamt Dauer</h5>
+                <h2 class="card-text">@Model["GesamtDauer"] Min</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-bar-chart"></i> Durchschnittliche Dauer</h5>
+                <h2 class="card-text">@Math.Round((double)Model["DurchschnittsDauer"], 1) Min</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-fire"></i> Gesamt Kalorien</h5>
+                <h2 class="card-text">@Model["GesamtKalorien"] kcal</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart"></i> Trainings nach Typ</h5>
+            </div>
+            <div class="card-body">
+                @{
+                    var trainingsProTyp = (Dictionary<string, int>)Model["TrainingsProTyp"];
+                }
+
+                @if (trainingsProTyp.Any())
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Trainingstyp</th>
+                                <th>Anzahl</th>
+                                <th>Anteil</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in trainingsProTyp)
+                            {
+                                var prozent = ((double)item.Value / (int)Model["GesamtAnzahl"]) * 100;
+                                <tr>
+                                    <td>
+                                        @switch (item.Key)
+                                        {
+                                            case "Cardio":
+                                                <i class="bi bi-bicycle text-danger"></i>
+                                                break;
+                                            case "Kraft":
+                                                <i class="bi bi-award text-warning"></i>
+                                                break;
+                                            case "Team":
+                                                <i class="bi bi-people text-success"></i>
+                                                break;
+                                            default:
+                                                <i class="bi bi-activity text-primary"></i>
+                                                break;
+                                        }
+                                        @item.Key
+                                    </td>
+                                    <td>@item.Value</td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar"
+                                                 style="width: @prozent%" aria-valuenow="@prozent"
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                                @Math.Round(prozent, 1)%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        Noch keine Trainingsdaten vorhanden.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zu Trainings
+    </a>
+</div>

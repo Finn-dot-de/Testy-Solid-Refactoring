@@ -1,0 +1,97 @@
+@model List<ActiveLog.Web.Models.Training>
+
+@{
+    ViewData["Title"] = "Meine Trainings";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-list-ul"></i> Meine Trainings</h2>
+    </div>
+    <div class="col text-end">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Neues Training
+        </a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Noch keine Trainings vorhanden. Erstelle dein erstes Training!
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var training in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            @switch (training.Typ)
+                            {
+                                case "Cardio":
+                                    <i class="bi bi-bicycle text-danger"></i>
+                                    break;
+                                case "Kraft":
+                                    <i class="bi bi-award text-warning"></i>
+                                    break;
+                                case "Team":
+                                    <i class="bi bi-people text-success"></i>
+                                    break;
+                                default:
+                                    <i class="bi bi-activity text-primary"></i>
+                                    break;
+                            }
+                            @training.Typ
+                        </h5>
+                        <p class="card-text">
+                            <strong>Datum:</strong> @training.Datum.ToString("dd.MM.yyyy HH:mm")<br />
+                            <strong>Dauer:</strong> @training.DauerMinuten Min<br />
+
+                            @if (training is ActiveLog.Web.Models.CardioTraining cardio)
+                            {
+                                <text><strong>Distanz:</strong> @cardio.Distanz km<br /></text>
+                                <text><strong>Ø Geschwindigkeit:</strong> @Math.Round(cardio.DurchschnittsGeschwindigkeit, 1) km/h<br /></text>
+                            }
+                            else if (training is ActiveLog.Web.Models.KraftTraining kraft)
+                            {
+                                <text><strong>Gewicht:</strong> @kraft.GesamtGewicht kg<br /></text>
+                                <text><strong>Sätze:</strong> @kraft.AnzahlSaetze<br /></text>
+                            }
+                            else if (training is ActiveLog.Web.Models.TeamTraining team)
+                            {
+                                <text><strong>Mannschaft:</strong> @team.Mannschaft<br /></text>
+                                <text><strong>Teilnehmer:</strong> @team.AnzahlTeilnehmer<br /></text>
+                            }
+
+                            @if (!string.IsNullOrEmpty(training.Notizen))
+                            {
+                                <text><br /><strong>Notizen:</strong> @training.Notizen</text>
+                            }
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <form asp-action="Delete" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@training.Id" />
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Training wirklich löschen?')">
+                                <i class="bi bi-trash"></i> Löschen
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-action="Export" asp-route-format="csv" class="btn btn-outline-primary">
+        <i class="bi bi-file-earmark-text"></i> Als CSV exportieren
+    </a>
+    <a asp-action="Export" asp-route-format="json" class="btn btn-outline-primary">
+        <i class="bi bi-file-earmark-code"></i> Als JSON exportieren
+    </a>
+</div>

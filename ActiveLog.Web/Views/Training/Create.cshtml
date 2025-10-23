@@ -1,0 +1,103 @@
+@{
+    ViewData["Title"] = "Neues Training";
+}
+
+<h2><i class="bi bi-plus-circle"></i> Neues Training erstellen</h2>
+
+<form asp-action="Create" method="post" class="mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="typ" class="form-label">Trainingstyp</label>
+                <select class="form-select" id="typ" name="typ" required onchange="toggleTrainingFields()">
+                    <option value="">-- Typ wählen --</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="Kraft">Kraft</option>
+                    <option value="Team">Team-Sport</option>
+                    <option value="Flexibilität">Flexibilität</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="datum" class="form-label">Datum & Uhrzeit</label>
+                <input type="datetime-local" class="form-control" id="datum" name="datum" required
+                       value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")">
+            </div>
+
+            <div class="mb-3">
+                <label for="dauerMinuten" class="form-label">Dauer (Minuten)</label>
+                <input type="number" class="form-control" id="dauerMinuten" name="dauerMinuten"
+                       min="1" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="notizen" class="form-label">Notizen (optional)</label>
+                <textarea class="form-control" id="notizen" name="notizen" rows="3"></textarea>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div id="cardioFields" style="display: none;">
+                <h5 class="mb-3">Cardio-Details</h5>
+                <div class="mb-3">
+                    <label for="distanz" class="form-label">Distanz (km)</label>
+                    <input type="number" step="0.1" class="form-control" id="distanz" name="distanz">
+                    <div class="form-text">Durchschnittsgeschwindigkeit wird automatisch berechnet</div>
+                </div>
+            </div>
+
+            <div id="kraftFields" style="display: none;">
+                <h5 class="mb-3">Kraft-Details</h5>
+                <div class="mb-3">
+                    <label for="gewicht" class="form-label">Gesamtgewicht (kg)</label>
+                    <input type="number" step="0.5" class="form-control" id="gewicht" name="gewicht">
+                </div>
+                <div class="mb-3">
+                    <label for="saetze" class="form-label">Anzahl Sätze</label>
+                    <input type="number" class="form-control" id="saetze" name="saetze">
+                </div>
+            </div>
+
+            <div id="teamFields" style="display: none;">
+                <h5 class="mb-3">Team-Details</h5>
+                <div class="mb-3">
+                    <label for="mannschaft" class="form-label">Mannschaft</label>
+                    <input type="text" class="form-control" id="mannschaft" name="mannschaft">
+                </div>
+                <div class="mb-3">
+                    <label for="teilnehmer" class="form-label">Anzahl Teilnehmer</label>
+                    <input type="number" class="form-control" id="teilnehmer" name="teilnehmer">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle"></i> Training speichern
+        </button>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-x-circle"></i> Abbrechen
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        function toggleTrainingFields() {
+            const typ = document.getElementById('typ').value;
+
+            document.getElementById('cardioFields').style.display = 'none';
+            document.getElementById('kraftFields').style.display = 'none';
+            document.getElementById('teamFields').style.display = 'none';
+
+            if (typ === 'Cardio') {
+                document.getElementById('cardioFields').style.display = 'block';
+            } else if (typ === 'Kraft') {
+                document.getElementById('kraftFields').style.display = 'block';
+            } else if (typ === 'Team') {
+                document.getElementById('teamFields').style.display = 'block';
+            }
+        }
+    </script>
+}
