@@ -87,6 +87,6 @@ public class TrainingModelTests
 
         var info = cardio.GetTrainingInfo();
 
-        Assert.Contains("10.5 km", info);
+        Assert.Contains("10,5 km", info);
     }
 }
