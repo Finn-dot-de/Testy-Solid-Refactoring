@@ -1,8 +1,11 @@
 using ActiveLog.Web.Data;
+using ActiveLog.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<ITrainingService, TrainingService>();
 
 var app = builder.Build();
 

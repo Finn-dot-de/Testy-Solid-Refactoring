@@ -6,19 +6,21 @@ namespace ActiveLog.Web.Controllers;
 
 public class TrainingController : Controller
 {
-    private readonly TrainingService _service = new TrainingService();
+    // Abhängigkeit auf das Interface, nicht die Klasse!
+    private readonly ITrainingService _service;
+
+    // Constructor Injection: Der DI-Container liefert die Instanz
+    public TrainingController(ITrainingService service)
+    {
+        _service = service;
+    }
 
     public IActionResult Index()
     {
         var trainings = _service.GetAllTrainings();
         return View(trainings);
     }
-
-    public IActionResult Create()
-    {
-        return View();
-    }
-
+    
     [HttpPost]
     public IActionResult Create(string typ, DateTime datum, int dauerMinuten, string? notizen,
         double? distanz, double? gewicht, int? saetze,

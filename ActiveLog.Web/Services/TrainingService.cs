@@ -7,7 +7,7 @@ using Microsoft.Data.Sqlite;
 namespace ActiveLog.Web.Services;
 
 // SRP-Verstoß: Diese Klasse macht zu viel!
-public class TrainingService
+public class TrainingService : ITrainingService
 {
     public Training CreateTraining(string typ, DateTime datum, int dauerMinuten, string? notizen, Dictionary<string, object>? extraData = null)
     {
