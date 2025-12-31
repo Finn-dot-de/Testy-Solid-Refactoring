@@ -6,13 +6,19 @@ namespace ActiveLog.Web.Controllers;
 
 public class TrainingController : Controller
 {
-    // Abhängigkeit auf das Interface, nicht die Klasse!
     private readonly ITrainingService _service;
+    private readonly TrainingExporter _exporter;
+    private readonly TrainingStatisticsService _statsService;
 
-    // Constructor Injection: Der DI-Container liefert die Instanz
-    public TrainingController(ITrainingService service)
+    // Constructor Injection für alle benötigten Services
+    public TrainingController(
+        ITrainingService service, 
+        TrainingExporter exporter, 
+        TrainingStatisticsService statsService)
     {
         _service = service;
+        _exporter = exporter;
+        _statsService = statsService;
     }
 
     public IActionResult Index()
@@ -20,7 +26,12 @@ public class TrainingController : Controller
         var trainings = _service.GetAllTrainings();
         return View(trainings);
     }
-    
+
+    public IActionResult Create()
+    {
+        return View();
+    }
+
     [HttpPost]
     public IActionResult Create(string typ, DateTime datum, int dauerMinuten, string? notizen,
         double? distanz, double? gewicht, int? saetze,
@@ -31,7 +42,6 @@ public class TrainingController : Controller
         if (distanz.HasValue)
         {
             extraData["Distanz"] = distanz.Value;
-            // Berechne Durchschnittsgeschwindigkeit: km / (min / 60) = km/h
             if (dauerMinuten > 0)
             {
                 var geschwindigkeit = distanz.Value / (dauerMinuten / 60.0);
@@ -51,13 +61,22 @@ public class TrainingController : Controller
 
     public IActionResult Statistics()
     {
-        var stats = _service.GetStatistiken();
+        // 1. Daten holen (über Service/Repo)
+        var trainings = _service.GetAllTrainings();
+        
+        // 2. Berechnung an den Statistik-Spezialisten delegieren
+        var stats = _statsService.Calculate(trainings);
+        
         return View(stats);
     }
 
     public IActionResult Export(string format)
     {
-        var content = _service.ExportTrainings(format);
+        var trainings = _service.GetAllTrainings();
+        
+        // Export an den Exporter delegieren
+        var content = _exporter.Export(trainings, format);
+        
         var fileName = $"trainings_{DateTime.Now:yyyyMMdd}.{format}";
         var contentType = format.ToLower() == "csv" ? "text/csv" : "application/json";
 
