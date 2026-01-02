@@ -46,7 +46,7 @@ public class TrainingModelTests
     }
 
     [Fact]
-    public void TeamTraining_BerechneKalorien_WirftException()
+    public void TeamTraining_BerechneKalorien_ReturnsZero()
     {
         var team = new TeamTraining
         {
@@ -54,7 +54,8 @@ public class TrainingModelTests
             AnzahlTeilnehmer = 11
         };
 
-        Assert.Throws<NotSupportedException>(() => team.BerechneKalorien());
+        var kalorien = team.BerechneKalorien();
+        Assert.Equal(0.0, kalorien);
     }
 
     [Fact]

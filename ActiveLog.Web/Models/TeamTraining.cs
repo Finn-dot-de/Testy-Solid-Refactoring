@@ -7,7 +7,7 @@ public class TeamTraining : Training
 
     public override double BerechneKalorien()
     {
-        throw new NotSupportedException("Kalorienberechnung für Team-Trainings nicht verfügbar");
+        return 0.0;
     }
 
     public override string GetTrainingInfo()
