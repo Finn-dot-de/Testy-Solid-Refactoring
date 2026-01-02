@@ -14,6 +14,11 @@ builder.Services.AddScoped<ITrainingService, TrainingService>();
 builder.Services.AddScoped<TrainingExporter>();
 builder.Services.AddScoped<TrainingStatisticsService>();
 
+builder.Services.AddScoped<TrainingRepository>(); // Die konkrete Klasse
+builder.Services.AddScoped<ITrainingRepository>(x => x.GetRequiredService<TrainingRepository>());
+builder.Services.AddScoped<ITrainingSearchRepository>(x => x.GetRequiredService<TrainingRepository>());
+builder.Services.AddScoped<ITrainingStatsRepository>(x => x.GetRequiredService<TrainingRepository>());
+
 var app = builder.Build();
 
 DatabaseHelper.InitializeDatabase();

@@ -4,7 +4,12 @@ using Microsoft.Data.Sqlite;
 
 namespace ActiveLog.Web.Data;
 
-public class TrainingRepository : ITrainingRepository
+public class TrainingRepository : 
+    ITrainingRepository, 
+    ITrainingSearchRepository, 
+    ITrainingStatsRepository, 
+    ITrainingExportRepository, 
+    IUebungRepository
 {
     public void Add(Training training)
     {

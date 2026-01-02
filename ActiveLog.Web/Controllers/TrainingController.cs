@@ -61,10 +61,8 @@ public class TrainingController : Controller
 
     public IActionResult Statistics()
     {
-        // 1. Daten holen (über Service/Repo)
         var trainings = _service.GetAllTrainings();
         
-        // 2. Berechnung an den Statistik-Spezialisten delegieren
         var stats = _statsService.Calculate(trainings);
         
         return View(stats);
@@ -74,7 +72,6 @@ public class TrainingController : Controller
     {
         var trainings = _service.GetAllTrainings();
         
-        // Export an den Exporter delegieren
         var content = _exporter.Export(trainings, format);
         
         var fileName = $"trainings_{DateTime.Now:yyyyMMdd}.{format}";

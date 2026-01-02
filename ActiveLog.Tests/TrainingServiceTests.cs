@@ -10,7 +10,7 @@ public class TrainingServiceTests : IDisposable
     private readonly SqliteConnection _connection;
     private readonly TrainingService _service;
 
-    public TrainingServiceTests()
+public TrainingServiceTests()
     {
         _connection = new SqliteConnection("Data Source=TestDb;Mode=Memory;Cache=Shared");
         _connection.Open();
@@ -36,7 +36,11 @@ public class TrainingServiceTests : IDisposable
 
         DatabaseHelper.SetConnectionString("Data Source=TestDb;Mode=Memory;Cache=Shared");
 
-        _service = new TrainingService();
+        var repository = new TrainingRepository(); 
+        var factory = new TrainingFactory();
+        var validator = new TrainingValidator();
+
+        _service = new TrainingService(repository, factory, validator);
     }
 
     public void Dispose()
@@ -156,10 +160,14 @@ public class TrainingServiceTests : IDisposable
         Assert.False(result);
     }
 
-    [Fact]
+[Fact]
     public void ExportTrainings_CsvFormat_ReturnsValidCsv()
     {
-        var result = _service.ExportTrainings("csv");
+        var trainings = _service.GetAllTrainings();
+
+        var exporter = new TrainingExporter();
+
+        var result = exporter.Export(trainings, "csv");
 
         Assert.Contains("Id,Datum,Typ,Dauer (Min),Notizen", result);
     }
@@ -167,7 +175,10 @@ public class TrainingServiceTests : IDisposable
     [Fact]
     public void ExportTrainings_JsonFormat_ReturnsValidJson()
     {
-        var result = _service.ExportTrainings("json");
+        var trainings = _service.GetAllTrainings();
+        var exporter = new TrainingExporter();
+
+        var result = exporter.Export(trainings, "json");
 
         Assert.Contains("[", result);
         Assert.Contains("]", result);
@@ -176,6 +187,9 @@ public class TrainingServiceTests : IDisposable
     [Fact]
     public void ExportTrainings_UngültigesFormat_WirftException()
     {
-        Assert.Throws<ArgumentException>(() => _service.ExportTrainings("xml"));
+        var trainings = _service.GetAllTrainings();
+        var exporter = new TrainingExporter();
+
+        Assert.Throws<ArgumentException>(() => exporter.Export(trainings, "xml"));
     }
 }

@@ -1,37 +1,44 @@
+// uploaded:AEuP12_OOP_SOLID_team1/ActiveLog.Web/Data/ITrainingRepository.cs
 using ActiveLog.Web.Models;
 
 namespace ActiveLog.Web.Data;
 
-// ISP-Verstoß: "Fat Interface" mit zu vielen Methoden
-// Nicht alle Implementierungen brauchen alle diese Methoden
+// Core CRUD Operationen
 public interface ITrainingRepository
 {
-    // CRUD Operationen
     List<Training> GetAll();
     Training? GetById(int id);
     void Add(Training training);
     void Update(Training training);
     void Delete(int id);
+}
 
-    // Spezielle Abfragen
+// Spezielle Abfragen (Queries)
+public interface ITrainingSearchRepository
+{
     List<Training> GetByTyp(string typ);
     List<Training> GetByDateRange(DateTime von, DateTime bis);
     List<Training> GetByZielId(int zielId);
+}
 
-    // Statistiken
+// Datenbank-seitige Statistiken
+public interface ITrainingStatsRepository
+{
     double GetGesamtDauer();
     double GetDurchschnittlicheDauer();
     Dictionary<string, int> GetTrainingsCountByTyp();
+}
 
-    // Export
+// Export-Logik
+public interface ITrainingExportRepository
+{
     string ExportToCsv();
     string ExportToJson();
+}
 
-    // Validierung
-    bool ValidateTraining(Training training);
-    List<string> GetValidationErrors(Training training);
-
-    // Übungen
+// Übungs-Management
+public interface IUebungRepository
+{
     void AddUebung(Uebung uebung);
     List<Uebung> GetUebungenByTrainingId(int trainingId);
 }
