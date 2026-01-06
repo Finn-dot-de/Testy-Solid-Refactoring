@@ -10,7 +10,6 @@ public class TrainingController : Controller
     private readonly TrainingExporter _exporter;
     private readonly TrainingStatisticsService _statsService;
 
-    // Constructor Injection für alle benötigten Services
     public TrainingController(
         ITrainingService service, 
         TrainingExporter exporter, 
@@ -33,27 +32,29 @@ public class TrainingController : Controller
     }
 
     [HttpPost]
-    public IActionResult Create(string typ, DateTime datum, int dauerMinuten, string? notizen,
-        double? distanz, double? gewicht, int? saetze,
-        int? teilnehmer, string? mannschaft)
+    public IActionResult Create(TrainingInputModel model, IFormCollection form)
     {
-        var extraData = new Dictionary<string, object>();
+        var extraData = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
-        if (distanz.HasValue)
+        foreach (var key in form.Keys)
         {
-            extraData["Distanz"] = distanz.Value;
-            if (dauerMinuten > 0)
+            if (key != nameof(model.Typ) && 
+                key != nameof(model.Datum) && 
+                key != nameof(model.DauerMinuten) && 
+                key != nameof(model.Notizen) && 
+                key != "__RequestVerificationToken")
             {
-                var geschwindigkeit = distanz.Value / (dauerMinuten / 60.0);
-                extraData["Geschwindigkeit"] = geschwindigkeit;
+                extraData[key] = form[key];
             }
         }
-        if (gewicht.HasValue) extraData["Gewicht"] = gewicht.Value;
-        if (saetze.HasValue) extraData["Saetze"] = saetze.Value;
-        if (teilnehmer.HasValue) extraData["Teilnehmer"] = teilnehmer.Value;
-        if (!string.IsNullOrEmpty(mannschaft)) extraData["Mannschaft"] = mannschaft;
 
-        var training = _service.CreateTraining(typ, datum, dauerMinuten, notizen, extraData);
+        if (extraData.ContainsKey("Distanz") && model.DauerMinuten > 0)
+        {
+             double dist = Convert.ToDouble(extraData["Distanz"]);
+             extraData["Geschwindigkeit"] = dist / (model.DauerMinuten / 60.0);
+        }
+
+        var training = _service.CreateTraining(model.Typ, model.Datum, model.DauerMinuten, model.Notizen, extraData);
         _service.SaveTraining(training);
 
         return RedirectToAction(nameof(Index));
@@ -62,21 +63,16 @@ public class TrainingController : Controller
     public IActionResult Statistics()
     {
         var trainings = _service.GetAllTrainings();
-        
         var stats = _statsService.Calculate(trainings);
-        
         return View(stats);
     }
 
     public IActionResult Export(string format)
     {
         var trainings = _service.GetAllTrainings();
-        
         var content = _exporter.Export(trainings, format);
-        
         var fileName = $"trainings_{DateTime.Now:yyyyMMdd}.{format}";
         var contentType = format.ToLower() == "csv" ? "text/csv" : "application/json";
-
         return File(System.Text.Encoding.UTF8.GetBytes(content), contentType, fileName);
     }
 

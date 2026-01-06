@@ -1,6 +1,7 @@
 using ActiveLog.Web.Data;
 using ActiveLog.Web.Models;
 using ActiveLog.Web.Services;
+using ActiveLog.Web.Services.Strategies;
 using Microsoft.Data.Sqlite;
 
 namespace ActiveLog.Tests;
@@ -10,8 +11,9 @@ public class TrainingServiceTests : IDisposable
     private readonly SqliteConnection _connection;
     private readonly TrainingService _service;
 
-public TrainingServiceTests()
+    public TrainingServiceTests()
     {
+        // In-Memory DB Setup
         _connection = new SqliteConnection("Data Source=TestDb;Mode=Memory;Cache=Shared");
         _connection.Open();
 
@@ -36,8 +38,17 @@ public TrainingServiceTests()
 
         DatabaseHelper.SetConnectionString("Data Source=TestDb;Mode=Memory;Cache=Shared");
 
-        var repository = new TrainingRepository(); 
-        var factory = new TrainingFactory();
+        var repository = new TrainingRepository();
+
+        var strategies = new List<ITrainingCreationStrategy>
+        {
+            new CardioCreationStrategy(),
+            new KraftCreationStrategy(),
+            new TeamCreationStrategy(),
+            new YogaCreationStrategy()
+        };
+
+        var factory = new TrainingFactory(strategies);
         var validator = new TrainingValidator();
 
         _service = new TrainingService(repository, factory, validator);
@@ -61,8 +72,8 @@ public TrainingServiceTests()
         var training = _service.CreateTraining("Cardio", DateTime.Now, 60, "Test", extraData);
 
         Assert.IsType<CardioTraining>(training);
-        var cardio = training as CardioTraining;
-        Assert.Equal(10.5, cardio!.Distanz);
+        var cardio = (CardioTraining)training;
+        Assert.Equal(10.5, cardio.Distanz);
         Assert.Equal(12.0, cardio.DurchschnittsGeschwindigkeit);
     }
 
@@ -79,7 +90,8 @@ public TrainingServiceTests()
 
         Assert.IsType<KraftTraining>(training);
         var kraft = training as KraftTraining;
-        Assert.Equal(100.0, kraft!.GesamtGewicht);
+        Assert.NotNull(kraft);
+        Assert.Equal(100.0, kraft.GesamtGewicht);
         Assert.Equal(5, kraft.AnzahlSaetze);
     }
 
@@ -96,8 +108,28 @@ public TrainingServiceTests()
 
         Assert.IsType<TeamTraining>(training);
         var team = training as TeamTraining;
-        Assert.Equal(11, team!.AnzahlTeilnehmer);
+        Assert.NotNull(team);
+        Assert.Equal(11, team.AnzahlTeilnehmer);
         Assert.Equal("FC Test", team.Mannschaft);
+    }
+
+    // --- NEUER TEST FUER YOGA ---
+    [Fact]
+    public void CreateTraining_YogaTyp_ErstelltYogaTraining()
+    {
+        var extraData = new Dictionary<string, object>
+        {
+            { "Stil", "Vinyasa" },
+            { "Schwierigkeitsgrad", 5 }
+        };
+
+        var training = _service.CreateTraining("Yoga", DateTime.Now, 60, "Namaste", extraData);
+
+        Assert.IsType<YogaTraining>(training);
+        var yoga = training as YogaTraining;
+        Assert.NotNull(yoga);
+        Assert.Equal("Vinyasa", yoga.Stil);
+        Assert.Equal(5, yoga.Schwierigkeitsgrad);
     }
 
     [Fact]
@@ -109,9 +141,7 @@ public TrainingServiceTests()
             Datum = DateTime.Now,
             DauerMinuten = 30
         };
-
         var result = _service.ValidateTraining(training);
-
         Assert.True(result);
     }
 
@@ -124,9 +154,7 @@ public TrainingServiceTests()
             Datum = DateTime.Now,
             DauerMinuten = 0
         };
-
         var result = _service.ValidateTraining(training);
-
         Assert.False(result);
     }
 
@@ -139,9 +167,7 @@ public TrainingServiceTests()
             Datum = DateTime.Now,
             DauerMinuten = 30
         };
-
         var result = _service.ValidateTraining(training);
-
         Assert.False(result);
     }
 
@@ -154,21 +180,16 @@ public TrainingServiceTests()
             Datum = DateTime.Now.AddDays(2),
             DauerMinuten = 30
         };
-
         var result = _service.ValidateTraining(training);
-
         Assert.False(result);
     }
 
-[Fact]
+    [Fact]
     public void ExportTrainings_CsvFormat_ReturnsValidCsv()
     {
         var trainings = _service.GetAllTrainings();
-
         var exporter = new TrainingExporter();
-
         var result = exporter.Export(trainings, "csv");
-
         Assert.Contains("Id,Datum,Typ,Dauer (Min),Notizen", result);
     }
 
@@ -177,9 +198,7 @@ public TrainingServiceTests()
     {
         var trainings = _service.GetAllTrainings();
         var exporter = new TrainingExporter();
-
         var result = exporter.Export(trainings, "json");
-
         Assert.Contains("[", result);
         Assert.Contains("]", result);
     }
@@ -189,7 +208,6 @@ public TrainingServiceTests()
     {
         var trainings = _service.GetAllTrainings();
         var exporter = new TrainingExporter();
-
         Assert.Throws<ArgumentException>(() => exporter.Export(trainings, "xml"));
     }
 }
