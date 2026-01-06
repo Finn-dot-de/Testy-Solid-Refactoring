@@ -1,6 +1,8 @@
 using ActiveLog.Web.Data;
 using ActiveLog.Web.Services;
 using ActiveLog.Web.Services.Strategies;
+using ActiveLog.Web.Data.Mappers;
+using ActiveLog.Web.Data.Mappers.Strategies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,11 @@ builder.Services.AddScoped<TrainingRepository>();
 builder.Services.AddScoped<ITrainingRepository>(_ => _.GetRequiredService<TrainingRepository>());
 builder.Services.AddScoped<ITrainingSearchRepository>(_ => _.GetRequiredService<TrainingRepository>());
 builder.Services.AddScoped<ITrainingStatsRepository>(_ => _.GetRequiredService<TrainingRepository>());
+
+// Registrierung der Mapper Strategies
+builder.Services.AddScoped<ITrainingDataMapper, CardioDataMapper>();
+builder.Services.AddScoped<ITrainingDataMapper, KraftDataMapper>();
+builder.Services.AddScoped<ITrainingDataMapper, TeamDataMapper>();
 
 var app = builder.Build();
 

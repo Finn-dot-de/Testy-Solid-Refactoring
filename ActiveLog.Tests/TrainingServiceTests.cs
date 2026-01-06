@@ -1,4 +1,6 @@
 using ActiveLog.Web.Data;
+using ActiveLog.Web.Data.Mappers;            // NEU
+using ActiveLog.Web.Data.Mappers.Strategies; // NEU
 using ActiveLog.Web.Models;
 using ActiveLog.Web.Services;
 using ActiveLog.Web.Services.Strategies;
@@ -38,7 +40,15 @@ public class TrainingServiceTests : IDisposable
 
         DatabaseHelper.SetConnectionString("Data Source=TestDb;Mode=Memory;Cache=Shared");
 
-        var repository = new TrainingRepository();
+        var mappers = new List<ITrainingDataMapper>
+        {
+            new CardioDataMapper(),
+            new KraftDataMapper(),
+            new TeamDataMapper()
+        };
+
+        var repository = new TrainingRepository(mappers); 
+        // 👆 FIX ENDE
 
         var strategies = new List<ITrainingCreationStrategy>
         {
@@ -60,6 +70,7 @@ public class TrainingServiceTests : IDisposable
         _connection.Dispose();
     }
 
+    // ... Rest der Tests bleibt gleich ...
     [Fact]
     public void CreateTraining_CardioTyp_ErstelltCardioTraining()
     {
@@ -113,7 +124,6 @@ public class TrainingServiceTests : IDisposable
         Assert.Equal("FC Test", team.Mannschaft);
     }
 
-    // --- NEUER TEST FUER YOGA ---
     [Fact]
     public void CreateTraining_YogaTyp_ErstelltYogaTraining()
     {
